@@ -66,6 +66,7 @@ func TestHarness(t *testing.T) {
 		}
 		counter = &touchCounter{}
 		opt.Source, opt.Host, opt.Addr = replaySource{packets, counter}, replayHost{}, ip.To4()
+		opt.Plain = os.Getenv("GUYAPK_HARNESS_PLAIN") != ""
 	default:
 		t.Fatalf("unknown mode %q", mode)
 	}

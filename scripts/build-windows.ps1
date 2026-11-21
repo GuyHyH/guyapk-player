@@ -1,5 +1,5 @@
 # Builds dist\GuyAPK-<version>-Windows-x64-Setup.exe and a portable exe.
-param([string]$Version = "1.0.0")
+param([string]$Version = "1.1.0")
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root

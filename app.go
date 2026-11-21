@@ -22,7 +22,7 @@ import (
 )
 
 // Version is set at build time.
-var Version = "1.0.0"
+var Version = "1.1.0"
 
 // State is the device status shown in the UI.
 type State struct {

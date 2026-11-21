@@ -6,8 +6,8 @@
 
 | ระบบ | ไฟล์ | หมายเหตุ |
 |---|---|---|
-| Windows 10/11 (64 บิต) | `dist/GuyAPK-1.0.0-Windows-x64-Setup.exe` | ไม่ต้องใช้สิทธิ์ผู้ดูแลระบบ |
-| macOS 11 ขึ้นไป | `GuyAPK-1.0.0-macOS-AppleSilicon.dmg` หรือ `-Intel.dmg` | ต้อง build บน Mac ตามหัวข้อด้านล่าง |
+| Windows 10/11 (64 บิต) | `dist/GuyAPK-1.1.0-Windows-x64-Setup.exe` | ไม่ต้องใช้สิทธิ์ผู้ดูแลระบบ |
+| macOS 11 ขึ้นไป | `GuyAPK-1.1.0-macOS-AppleSilicon.dmg` หรือ `-Intel.dmg` | ต้อง build บน Mac ตามหัวข้อด้านล่าง |
 
 ถ้าเครื่องมี Android SDK อยู่แล้ว GuyAPK จะใช้ของเดิมทันที ถ้ายังไม่มี โปรแกรมจะให้อ่านและยอมรับสัญญาอนุญาต แล้วดาวน์โหลดจาก Google ประมาณ 2 GB และควรมีพื้นที่ว่างอย่างน้อย 6 GB
 
@@ -45,13 +45,13 @@ iPadOS ไม่อนุญาตให้แอปทั่วไปรัน�
 ต้องใช้ Go 1.26 ขึ้นไป
 
 ```powershell
-./scripts/build-windows.ps1 -Version 1.0.0
+./scripts/build-windows.ps1 -Version 1.1.0
 ```
 
 บน Mac ต้องมี Xcode Command Line Tools:
 
 ```bash
-./scripts/build-mac.sh 1.0.0 all
+./scripts/build-mac.sh 1.1.0 all
 ```
 
 หากจะแจกจ่ายบน Mac ให้ตั้ง `MAC_SIGN_ID` เป็น Developer ID และทำ Notarization มิฉะนั้น macOS จะเตือนตอนเปิดครั้งแรก

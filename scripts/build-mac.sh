@@ -3,7 +3,7 @@
 #   ./scripts/build-mac.sh [version] [arm64|amd64|all]
 # Set MAC_SIGN_ID to a "Developer ID Application" identity to sign for release.
 set -euo pipefail
-VERSION="${1:-1.0.0}"
+VERSION="${1:-1.1.0}"
 TARGET="${2:-all}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
