@@ -32,6 +32,26 @@ func TestRotationFromGravity(t *testing.T) {
 	}
 }
 
+func TestParseRotationIgnoresVirtualDisplay(t *testing.T) {
+	const report = `WINDOW MANAGER DISPLAY CONTENTS
+  Display: mDisplayId=10
+    overrideConfig={ mDisplayRotation=ROTATION_0 mRotation=ROTATION_0}
+    mRotation=0 mDeferredRotationPauseCount=0
+  Display: mDisplayId=0 (organized)
+    overrideConfig={ mDisplayRotation=ROTATION_0 mRotation=ROTATION_0}
+    mRotation=1 mDeferredRotationPauseCount=0
+`
+	if r, err := parseRotation(report); err != nil || r != 1 {
+		t.Fatalf("parseRotation = %d, %v, want 1", r, err)
+	}
+	if r, err := parseRotation("  Display: mDisplayId=0\n  mCurrentRotation=ROTATION_270\n"); err != nil || r != 3 {
+		t.Fatalf("older format = %d, %v, want 3", r, err)
+	}
+	if _, err := parseRotation("nothing useful"); err == nil {
+		t.Fatal("expected an error")
+	}
+}
+
 func TestCustomProfile(t *testing.T) {
 	p, err := FindProfile("custom", 1920, 1080, 300)
 	if err != nil || p.W != 1080 || p.H != 1920 {

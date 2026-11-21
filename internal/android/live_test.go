@@ -102,4 +102,26 @@ func TestLive(t *testing.T) {
 	if err := d.Uninstall(ctx, p.Info.Package); err != nil {
 		t.Fatalf("uninstall: %v", err)
 	}
+
+	// Shutting down while in landscape must not break rotation after Quick Boot.
+	if err := d.SetLandscape(ctx, true); err != nil {
+		t.Fatalf("rotate before restart: %v", err)
+	}
+	if err := m.Stop(ctx); err != nil {
+		t.Fatalf("stop: %v", err)
+	}
+	if err := m.Boot(ctx, spec, func(string) {}); err != nil {
+		t.Fatalf("second boot: %v", err)
+	}
+	for _, landscape := range []bool{true, false} {
+		if err := d.SetLandscape(ctx, landscape); err != nil {
+			t.Fatalf("rotate after restart landscape=%v: %v", landscape, err)
+		}
+		r, _ := d.Rotation(ctx)
+		w, _ := d.WindowRotation(ctx)
+		t.Logf("after restart landscape=%v display=%d window=%d", landscape, r, w)
+		if (r%2 == 1) != landscape || r != w {
+			t.Fatalf("rotation after restart: landscape=%v display=%d window=%d", landscape, r, w)
+		}
+	}
 }

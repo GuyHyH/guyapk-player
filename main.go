@@ -15,6 +15,10 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+// instanceID keeps one copy of the app running. Tests override it at link time
+// so they never touch a copy the user has open.
+var instanceID = "th.guyapk.player.single-instance"
+
 func main() {
 	if handleCLI() {
 		return
@@ -35,7 +39,7 @@ func main() {
 		Bind:             []any{app},
 		DragAndDrop:      &options.DragAndDrop{EnableFileDrop: true},
 		SingleInstanceLock: &options.SingleInstanceLock{
-			UniqueId:               "th.guyapk.player.single-instance",
+			UniqueId:               instanceID,
 			OnSecondInstanceLaunch: app.onSecondInstance,
 		},
 		Windows: &windows.Options{

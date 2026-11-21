@@ -1,0 +1,30 @@
+name: iPad Simulator test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ipad-remote]
+
+permissions:
+  contents: read
+
+jobs:
+  ipad:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: go test ./internal/...
+      - run: node scripts/ipad-sim-test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ipad-test-results
+          path: ipad-test-results
+          if-no-files-found: ignore

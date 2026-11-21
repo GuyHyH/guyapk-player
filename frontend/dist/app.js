@@ -224,11 +224,36 @@ function renderSettings() {
   $('#dataPath').textContent = e.dataPath;
   $('#about').textContent = t('about', { v: e.version });
 }
-function renderAll() { applyText(); renderPlay(); renderLibrary(); renderSettings(); }
+function renderRemote() {
+  const r = S.remote || {};
+  $('#rmToggle').checked = !!r.enabled;
+  $('#rmOff').hidden = !!r.enabled; $('#rmOn').hidden = !r.enabled;
+  $('#rmDot').hidden = !r.connected;
+  if (r.enabled) {
+    if ($('#rmQR').getAttribute('src') !== r.qr) $('#rmQR').src = r.qr;
+    $('#rmURL').textContent = r.setupUrl;
+    $('#rmPin').textContent = r.pin;
+    renderRemoteExpiry();
+  }
+  $('#rmConn').classList.toggle('on', !!r.connected);
+  $('#rmConnText').textContent = t(r.connected ? 'rm.connected' : r.enabled ? 'rm.waiting' : 'rm.disabled');
+  $('#rmPaired').textContent = t('rm.paired', { n: r.paired || 0 });
+  $('#rmUnpair').disabled = !r.paired;
+}
+function renderRemoteExpiry() {
+  const r = S.remote; if (!r?.enabled) return;
+  const left = Math.max(0, r.pinExpires - Math.floor(Date.now() / 1000));
+  $('#rmExpire').textContent = t('rm.expire', { t: Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0') });
+  if (left === 0 && !S.remoteRefreshing) {
+    S.remoteRefreshing = true;
+    api.RemoteInfo().then(i => { S.remote = i; renderRemote(); }).finally(() => { S.remoteRefreshing = false; });
+  }
+}
+function renderAll() { applyText(); renderPlay(); renderLibrary(); renderSettings(); renderRemote(); }
 function setView(v) {
   S.view = v;
   $$('.tab').forEach(b => { const on = b.dataset.view === v; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
-  for (const id of ['play', 'library', 'settings']) $('#view-' + id).hidden = id !== v;
+  for (const id of ['play', 'library', 'remote', 'settings']) $('#view-' + id).hidden = id !== v;
   if (v === 'play') requestAnimationFrame(layoutDevice);
 }
 
@@ -403,6 +428,18 @@ function wire() {
     if (ok) { save({ customW: w, customH: h, customDpi: d }); layoutDevice(); renderScreen(); }
   };
 
+  $('#rmToggle').onchange = async e => {
+    const on = e.target.checked; e.target.disabled = true;
+    try { S.remote = await api.RemoteEnable(on); } catch (err) { toast(errText(err), true); }
+    e.target.disabled = false; renderRemote();
+  };
+  $('#rmNew').onclick = async () => { S.remote = await api.RemoteNewPIN(); renderRemote(); };
+  $('#rmUnpair').onclick = async () => {
+    if (!await confirmBox(t('rm.unpairTitle'), t('rm.unpairText'), t('rm.unpairYes'))) return;
+    try { S.remote = await api.RemoteUnpairAll(); renderRemote(); } catch (err) { toast(errText(err), true); }
+  };
+  setInterval(() => { if (S.view === 'remote') renderRemoteExpiry(); }, 1000);
+
   $('#winMin').onclick = () => rt?.WindowMinimise();
   $('#winMax').onclick = () => rt?.WindowToggleMaximise();
   $('#winClose').onclick = () => rt?.Quit();
@@ -429,6 +466,7 @@ function wire() {
     rt.EventsOn('install', step => { S.installStep = step; if (!$('#installModal').hidden && step !== 'done') drawSteps(step); });
     rt.EventsOn('provision', onProvision);
     rt.EventsOn('file', beginInstall);
+    rt.EventsOn('remote', i => { S.remote = i; renderRemote(); });
     rt.OnFileDrop?.((x, y, paths) => {
       const file = (paths || []).find(p => /\.(apk|xapk|apks|apkm)$/i.test(p));
       if (file) beginInstall(file); else toast(t('err.not_apk'), true);
@@ -446,6 +484,7 @@ async function init() {
   wire();
   const modes = ['eco', 'balanced', 'max'];
   (await Promise.all(modes.map(m => api.Tuning(m)))).forEach((u, i) => { S.tuning[modes[i]] = u; });
+  S.remote = await api.RemoteInfo();
   renderAll(); setView('play');
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('boot')));
   if (b.pending) beginInstall(b.pending);

@@ -26,14 +26,27 @@ type InstallError struct{ Code string }
 func (e *InstallError) Error() string { return "install:" + e.Code }
 
 var (
-	installRe  = regexp.MustCompile(`(INSTALL_[A-Z_]+)`)
-	rotationRe = regexp.MustCompile(`(?:mRotation=|mCurrentRotation=|rotation=)(?:ROTATION_)?(0|90|180|270|1|2|3)\b`)
-	safePkgRe  = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$`)
-	accelRe2   = regexp.MustCompile(`acceleration\s*[=:]\s*(-?[\d.]+(?:e-?\d+)?):(-?[\d.]+(?:e-?\d+)?):`)
+	installRe      = regexp.MustCompile(`(INSTALL_[A-Z_]+)`)
+	rotationRe     = regexp.MustCompile(`(?:mRotation=|mCurrentRotation=|rotation=)(?:ROTATION_)?(0|90|180|270|1|2|3)\b`)
+	rotationLineRe = regexp.MustCompile(`(?m)^\s*mRotation=([0-3])\s+mDeferredRotationPauseCount`)
+	safePkgRe      = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$`)
+	accelRe2       = regexp.MustCompile(`acceleration\s*[=:]\s*(-?[\d.]+(?:e-?\d+)?):(-?[\d.]+(?:e-?\d+)?):`)
 )
 
 func (d Device) adb(ctx context.Context, t time.Duration, args ...string) (string, error) {
 	return run(ctx, t, d.SDK.ADB(), append([]string{"-s", d.Serial}, args...)...)
+}
+
+// Run executes an adb command for this device and returns its output.
+func (d Device) Run(ctx context.Context, t time.Duration, args ...string) (string, error) {
+	return d.adb(ctx, t, args...)
+}
+
+// Command prepares a long-running adb command for this device.
+func (d Device) Command(ctx context.Context, args ...string) *exec.Cmd {
+	cmd := exec.CommandContext(ctx, d.SDK.ADB(), append([]string{"-s", d.Serial}, args...)...)
+	hideConsole(cmd)
+	return cmd
 }
 
 // Shell runs a command on the device.
@@ -156,7 +169,24 @@ func (d Device) Rotation(ctx context.Context) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	m := rotationRe.FindStringSubmatch(out)
+	return parseRotation(out)
+}
+
+// parseRotation reads the main display's rotation. Screen streaming adds a
+// virtual display that is listed first and stays at rotation 0, so the report
+// must be narrowed to display 0 before looking for the value.
+func parseRotation(out string) (int, error) {
+	section := out
+	if i := strings.Index(out, "Display: mDisplayId=0"); i >= 0 {
+		section = out[i:]
+		if j := strings.Index(section[1:], "Display: mDisplayId="); j >= 0 {
+			section = section[:j+1]
+		}
+	}
+	m := rotationLineRe.FindStringSubmatch(section)
+	if m == nil {
+		m = rotationRe.FindStringSubmatch(section)
+	}
 	if m == nil {
 		return 0, errors.New("rotation: unknown")
 	}
@@ -208,43 +238,41 @@ func (d Device) SetLandscape(ctx context.Context, landscape bool) error {
 	d.Shell(ctx, 5*time.Second, "settings", "put", "system", "accelerometer_rotation", "0")
 	d.Shell(ctx, 5*time.Second, "wm", "set-ignore-orientation-request", "true")
 
-	// Only the two upright states are used: Android may refuse upside-down
-	// rotation, and the console can only step the window one way round.
+	// The console can only step the window a quarter turn, and ignores a step
+	// sent while the last one is animating. So turn once and let Android follow
+	// whichever way the window now faces, which keeps the picture upright.
 	target := 0
 	if landscape {
 		target = 1
 	}
 	win, err := d.WindowRotation(ctx)
-	if err != nil {
-		return fmt.Errorf("rotate: %w", err)
-	}
-	for step := 0; win != target; step++ {
-		if step == 4 {
-			return errors.New("rotate: window did not turn")
-		}
-		if _, err := d.adb(ctx, 6*time.Second, "emu", "rotate"); err != nil {
-			return fmt.Errorf("rotate: %w", err)
-		}
+	if err == nil && (win%2 == 1) != landscape {
 		before := win
-		deadline := time.Now().Add(2 * time.Second)
-		for win == before && time.Now().Before(deadline) {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(40 * time.Millisecond):
-			}
-			if n, err := d.WindowRotation(ctx); err == nil {
-				win = n
+		if _, err = d.adb(ctx, 6*time.Second, "emu", "rotate"); err == nil {
+			deadline := time.Now().Add(2500 * time.Millisecond)
+			for win == before && time.Now().Before(deadline) {
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-time.After(40 * time.Millisecond):
+				}
+				if n, rerr := d.WindowRotation(ctx); rerr == nil {
+					win = n
+				}
 			}
 		}
+	}
+	// The desktop window is best effort. If it did not respond, Android must
+	// still rotate so that a connected iPad gets the right picture.
+	if err == nil && (win%2 == 1) == landscape {
+		target = win
 	}
 	if _, err := d.Shell(ctx, 5*time.Second, "wm", "user-rotation", "lock", strconv.Itoa(target)); err != nil {
 		return fmt.Errorf("rotate: %w", err)
 	}
-	win = target
 	deadline := time.Now().Add(6 * time.Second)
 	for {
-		if r, err := d.Rotation(ctx); err == nil && r == win {
+		if r, err := d.Rotation(ctx); err == nil && r == target {
 			return nil
 		}
 		if time.Now().After(deadline) {

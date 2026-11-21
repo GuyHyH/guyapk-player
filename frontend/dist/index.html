@@ -55,6 +55,7 @@
   <nav class="tabs" role="tablist">
     <button class="tab" data-view="play" role="tab"><svg class="ic"><use href="#i-play"/></svg><span data-t="nav.play"></span></button>
     <button class="tab" data-view="library" role="tab"><svg class="ic"><use href="#i-grid"/></svg><span data-t="nav.library"></span><em id="libCount" hidden></em></button>
+    <button class="tab" data-view="remote" role="tab"><svg class="ic"><use href="#i-tablet"/></svg><span>iPad</span><i class="tab-dot" id="rmDot" hidden></i></button>
     <button class="tab" data-view="settings" role="tab"><svg class="ic"><use href="#i-gear"/></svg><span data-t="nav.settings"></span></button>
   </nav>
   <div class="title-right">
@@ -150,6 +151,44 @@
       <h3 data-t="lib.emptyTitle"></h3>
       <p data-t="lib.emptyText"></p>
       <button class="btn gold" id="libEmptyAdd"><svg class="ic"><use href="#i-upload"/></svg><span data-t="lib.add"></span></button>
+    </div>
+  </section>
+
+  <section class="view remote" id="view-remote" hidden>
+    <div class="set-wrap wide">
+      <div class="rm-head">
+        <div><h1 data-t="rm.title"></h1><p data-t="rm.sub"></p></div>
+        <label class="switch big" aria-label="iPad Remote"><input type="checkbox" id="rmToggle"><i></i></label>
+      </div>
+      <div class="card rm-off" id="rmOff">
+        <svg class="rm-art"><use href="#i-tablet"/></svg>
+        <div><h3 data-t="rm.offTitle"></h3><p data-t="rm.offText"></p><p class="rm-warn" data-t="rm.firewall"></p></div>
+      </div>
+      <div class="rm-grid" id="rmOn" hidden>
+        <div class="card rm-qr">
+          <h3 data-t="rm.scan"></h3>
+          <img id="rmQR" alt="QR">
+          <code id="rmURL"></code>
+        </div>
+        <div class="rm-side">
+          <div class="card rm-pin">
+            <h3 data-t="rm.pin"></h3>
+            <div id="rmPin" aria-live="polite"></div>
+            <div class="rm-pin-foot"><small id="rmExpire"></small><button class="btn" id="rmNew" data-t="rm.newPin"></button></div>
+          </div>
+          <div class="card">
+            <h3 data-t="rm.howTitle"></h3>
+            <ol class="rm-steps">
+              <li data-t="rm.how1"></li><li data-t="rm.how2"></li><li data-t="rm.how3"></li><li data-t="rm.how4"></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="card rm-status">
+        <div class="rm-conn" id="rmConn"><i></i><span id="rmConnText"></span></div>
+        <small id="rmPaired"></small>
+        <button class="btn" id="rmUnpair" data-t="rm.unpair"></button>
+      </div>
     </div>
   </section>
 

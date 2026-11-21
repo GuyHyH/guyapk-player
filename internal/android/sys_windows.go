@@ -17,10 +17,10 @@ func hideConsole(c *exec.Cmd) {
 }
 
 type memoryStatusEx struct {
-	Length, MemoryLoad                          uint32
-	TotalPhys, AvailPhys, TotalPageFile         uint64
-	AvailPageFile, TotalVirtual, AvailVirtual   uint64
-	AvailExtendedVirtual                        uint64
+	Length, MemoryLoad                        uint32
+	TotalPhys, AvailPhys, TotalPageFile       uint64
+	AvailPageFile, TotalVirtual, AvailVirtual uint64
+	AvailExtendedVirtual                      uint64
 }
 
 // TotalRAMMB returns physical memory in MiB.

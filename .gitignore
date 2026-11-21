@@ -1,4 +1,5 @@
 /dist/
+/ipad-test-results/
 *.syso
 installer/payload.xz
 installer/version.txt

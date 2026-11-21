@@ -21,6 +21,19 @@ Windows ต้องเปิด **Windows Hypervisor Platform** และเป
 
 เปลี่ยนแนวตั้งหรือแนวนอนได้ทันทีระหว่างเล่น ส่วนการเปลี่ยนขนาดจอหรือโหมดประสิทธิภาพต้องเริ่มเครื่องใหม่ แอปและข้อมูลจะยังอยู่ครบ
 
+## เล่นบน iPad (GuyAPK Remote)
+
+iPadOS ไม่อนุญาตให้แอปทั่วไปรันเครื่องเสมือน Android จึงให้ Android ทำงานบนคอมพิวเตอร์ แล้ว iPad แสดงภาพและรับการแตะผ่าน Wi-Fi เดียวกัน
+
+1. เปิดแท็บ **iPad** ใน GuyAPK แล้วเปิดสวิตช์ ถ้าไฟร์วอลล์ถาม ให้อนุญาตเฉพาะเครือข่ายส่วนตัว
+2. สแกน QR ด้วยกล้อง iPad แล้วติดตั้งและเปิดความเชื่อถือใบรับรองตามหน้าจอ (ทำครั้งเดียว)
+3. กด **เปิด GuyAPK Remote** ใน Safari แล้วเลือกแชร์ > **เพิ่มไปยังหน้าจอโฮม**
+4. เปิดไอคอน GuyAPK บน iPad แล้วใส่รหัส PIN จากคอมพิวเตอร์
+
+ต้องใช้ iPadOS 16.4 ขึ้นไป ระบบเปิดรับเฉพาะเครือข่ายภายในเมื่อเปิดสวิตช์เท่านั้น เข้ารหัสด้วย TLS และใบรับรองจำกัดให้ใช้ได้กับที่อยู่ IP ภายใน เวอร์ชันนี้ยังไม่ส่งเสียงไปที่ iPad
+
+ครั้งแรกที่เชื่อมต่อ GuyAPK จะดาวน์โหลด scrcpy server จาก GitHub (ประมาณ 0.7 MB) และตรวจ SHA-256 ก่อนใช้งาน
+
 ## ข้อจำกัด
 
 - แอปที่ตรวจจับเครื่องจำลองหรือใช้ Play Integrity เช่น แอปธนาคารและเกมบางเกม อาจไม่ยอมทำงาน
@@ -59,4 +72,4 @@ $env:GUYAPK_LIVE_APK="C:\path\app.apk"; go test ./internal/android -run TestLive
 
 ## เครดิต
 
-ได้แนวคิดการจัดการหน้าจอจาก ApkStart (MIT) สร้างด้วย Wails, androidbinary และ ulikunitz/xz ส่วน Android Emulator และ system image เป็นของ Google ภายใต้ Android SDK License
+ได้แนวคิดการจัดการหน้าจอจาก ApkStart (MIT) สร้างด้วย Wails, androidbinary, ulikunitz/xz, gorilla/websocket และ go-qrcode การส่งภาพไป iPad ใช้ [scrcpy](https://github.com/Genymobile/scrcpy) (Apache-2.0) ส่วน Android Emulator และ system image เป็นของ Google ภายใต้ Android SDK License

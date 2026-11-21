@@ -17,6 +17,7 @@ import (
 
 	"guyapk/internal/android"
 	"guyapk/internal/apkinfo"
+	"guyapk/internal/remote"
 	"guyapk/internal/store"
 )
 
@@ -72,6 +73,7 @@ type App struct {
 	plan        *android.Plan
 	pendingFile string
 	provCancel  context.CancelFunc
+	remote      *remote.Server
 }
 
 // NewApp prepares storage.
@@ -114,6 +116,41 @@ func (a *App) refreshSDK() {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	go a.adopt()
+	go a.watchDevice()
+}
+
+// watchDevice notices when the emulator dies on its own, so neither the desktop
+// nor a connected iPad keeps showing a device that is gone.
+func (a *App) watchDevice() {
+	tick := time.NewTicker(4 * time.Second)
+	defer tick.Stop()
+	misses := 0
+	for {
+		select {
+		case <-a.ctx.Done():
+			return
+		case <-tick.C:
+		}
+		a.mu.Lock()
+		ready := a.state.Phase == "ready"
+		a.mu.Unlock()
+		if !ready || a.emu.Device().Online(a.ctx) {
+			misses = 0
+			continue
+		}
+		if misses++; misses < 2 {
+			continue
+		}
+		misses = 0
+		a.mu.Lock()
+		a.running = ""
+		a.mu.Unlock()
+		a.setState(func(s *State) {
+			if s.Phase == "ready" {
+				s.Phase, s.Step, s.Error, s.Restart = "idle", "", "device_lost", false
+			}
+		})
+	}
 }
 
 // adopt reconnects to a device left running by a previous session.
@@ -169,6 +206,12 @@ func (a *App) beforeClose(ctx context.Context) bool {
 func (a *App) shutdown(ctx context.Context) {
 	if a.provCancel != nil {
 		a.provCancel()
+	}
+	a.mu.Lock()
+	rs := a.remote
+	a.mu.Unlock()
+	if rs != nil {
+		rs.Disable()
 	}
 	if a.sdk.HasTools() && a.emu.Device().Online(context.Background()) {
 		c, cancel := context.WithTimeout(context.Background(), 60*time.Second)

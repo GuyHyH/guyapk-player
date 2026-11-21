@@ -279,6 +279,11 @@ func (m *Manager) tune(ctx context.Context, s Spec) {
 func (m *Manager) Stop(ctx context.Context) error {
 	d := m.Device()
 	if d.Online(ctx) {
+		// A snapshot saved while rotated can leave the window stuck on the next
+		// Quick Boot, so always save in the natural orientation.
+		upright, cancel := context.WithTimeout(ctx, 12*time.Second)
+		d.SetLandscape(upright, false)
+		cancel()
 		d.adb(ctx, 45*time.Second, "emu", "kill")
 	}
 	m.mu.Lock()

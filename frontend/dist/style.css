@@ -228,6 +228,39 @@ body.needs-restart.is-ready .caption{bottom:134px}
 .facts dd.bad{color:var(--ember)}
 .about{text-align:center;color:var(--faint);font-size:12px}
 
+/* iPad remote */
+.tab-dot{width:7px;height:7px;border-radius:50%;background:var(--jade);box-shadow:0 0 0 2px rgba(98,214,166,.22)}
+.remote{overflow-y:auto;background:rgba(12,10,9,.45)}
+.set-wrap.wide{max-width:920px}
+.rm-head{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.rm-head p{color:var(--muted)}
+.switch.big{width:58px;height:32px}
+.switch.big i{border-radius:16px}
+.switch.big i::after{top:4px;left:4px;width:22px;height:22px}
+.switch.big input:checked+i::after{left:30px}
+.rm-off{display:flex;align-items:center;gap:22px;padding:24px}
+.rm-off h3{font-size:17px;color:var(--text);margin-bottom:4px}
+.rm-off p{color:var(--muted)}
+.rm-art{width:76px;height:76px;flex:none;fill:none;stroke:var(--gold);stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+.rm-warn{margin-top:8px;font-size:12.500px;color:var(--gold)!important}
+.rm-grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px}
+.rm-qr{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.rm-qr h3{align-self:flex-start;margin:0}
+#rmQR{width:100%;max-width:280px;aspect-ratio:1;border-radius:12px;background:#fff;padding:8px;display:block}
+#rmURL{font:600 13px/1.4 ui-monospace,Consolas,monospace;color:var(--gold-hi);user-select:text;-webkit-user-select:text;word-break:break-all}
+.rm-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+#rmPin{font:700 42px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.16em;color:var(--gold-hi);font-variant-numeric:tabular-nums;user-select:text;-webkit-user-select:text}
+.rm-pin-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px}
+.rm-pin-foot .btn{height:34px;font-size:13px}
+.rm-steps{padding-left:20px;display:flex;flex-direction:column;gap:5px;color:var(--text)}
+.rm-steps li::marker{color:var(--gold);font-weight:700}
+.rm-status{display:flex;align-items:center;gap:16px}
+.rm-conn{display:flex;align-items:center;gap:8px;font-weight:600}
+.rm-conn i{width:9px;height:9px;border-radius:50%;background:var(--faint)}
+.rm-conn.on i{background:var(--jade);box-shadow:0 0 0 3px rgba(98,214,166,.18)}
+.rm-status small{flex:1}
+.rm-status .btn{height:36px;font-size:13px}
+
 /* Overlays */
 .dragveil{position:fixed;inset:10px;z-index:60;display:grid;place-items:center;border-radius:18px;border:2px dashed var(--gold);background:rgba(12,10,9,.86);pointer-events:none;animation:fade .15s}
 .dragveil div{display:flex;flex-direction:column;align-items:center;gap:4px}
