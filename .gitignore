@@ -1,4 +1,4 @@
-dist/
+/dist/
 *.syso
 installer/payload.xz
 installer/version.txt
