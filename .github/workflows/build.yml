@@ -1,0 +1,56 @@
+name: Build installers
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version number
+        default: 1.0.0
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test ./internal/...
+      - name: Build
+        shell: pwsh
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          $v = if ($env:INPUT_VERSION) { $env:INPUT_VERSION } else { $env:TAG_NAME.TrimStart('v') }
+          ./scripts/build-windows.ps1 -Version $v
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GuyAPK-Windows
+          path: dist/*Setup.exe
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test ./internal/...
+      - name: Build
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          v="${INPUT_VERSION:-${TAG_NAME#v}}"
+          chmod +x scripts/build-mac.sh
+          ./scripts/build-mac.sh "$v" all
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GuyAPK-macOS
+          path: dist/*.dmg
